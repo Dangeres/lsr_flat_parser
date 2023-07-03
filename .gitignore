@@ -1,0 +1,7 @@
+__pycache__/
+env/
+
+data/
+queue/
+
+.DS_store
