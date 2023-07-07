@@ -10,9 +10,11 @@ from jsona import Jsona
 
 BASE_URL = 'https://www.lsr.ru'
 
-jsona = Jsona('', 'settings.json')
+jsona_settings = Jsona('', 'settings.json')
+jsona_system = Jsona('', 'settings_system.json')
 
-settings = jsona.return_json().get('data', {})
+settings = jsona_settings.return_json().get('data', {})
+settings_system = jsona_system.return_json().get('data', {'time': int(time.time())})
 
 
 FOLDER_DATA = 'data/'
@@ -263,13 +265,19 @@ def process_flats():
 
 def main():
     while True:
+        now_time = int(time.time())
+
+        time.sleep(max(settings_system['time'] - now_time, 0))
+
         flats = get_all_flats()
         
         save_data_flats_queue(flats)
 
         process_flats()
 
-        time.sleep(random.randint(30 * 60, 60 * 60))
+        settings_system['time'] = int(time.time()) + settings['await_time']
+
+        jsona_system.save_json(data = settings_system, ident=4)
 
 
 if __name__ == '__main__':

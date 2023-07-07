@@ -5,4 +5,4 @@ data/
 queue/
 
 .DS_store
-settings.json
+settings*.json
