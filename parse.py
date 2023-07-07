@@ -9,6 +9,9 @@ from bs4 import BeautifulSoup
 from jsona import Jsona
 
 
+SEND_TELEGRAM_MESSAGE = True
+
+
 BASE_URL = 'https://www.lsr.ru'
 
 jsona_settings = Jsona('', 'settings.json')
@@ -45,37 +48,44 @@ def get_all_flats():
 
     try:
         for page in range(1, 1000):
-            req = requests.post(
-                url='https://www.lsr.ru/ajax/search/msk/',
-                params={
-                    'price[min]': '',
-                    'price[max]': '',
-                    'area[min]': '',
-                    'area[max]': '',
-                    'floor[min]': '',
-                    'floor[max]': '',
-                    'location[]': 'district_19',
-                    'last_delivery': 30,
-                    'flattype[flat]': 'on',
-                    'mortgage_type': 3,
-                    'mortgage_payment': '',
-                    'mortgage_time:': '',
-                    '__s': '',
-                    'ob[page]': page,
-                    'ob[id]': 52,
-                    'ob[sort]': 'price',
-                    'ob[order]': 'asc',
-                    'a': 'flats',
-                    'object': 52,
-                    '__s': '',
-                }
-            )
+            while True:
+                try:
+                    req = requests.post(
+                        url='https://www.lsr.ru/ajax/search/msk/',
+                        params={
+                            'price[min]': '',
+                            'price[max]': '',
+                            'area[min]': '',
+                            'area[max]': '',
+                            'floor[min]': '',
+                            'floor[max]': '',
+                            'location[]': 'district_19',
+                            'last_delivery': 30,
+                            'flattype[flat]': 'on',
+                            'mortgage_type': 3,
+                            'mortgage_payment': '',
+                            'mortgage_time:': '',
+                            '__s': '',
+                            'ob[page]': page,
+                            'ob[id]': 52,
+                            'ob[sort]': 'price',
+                            'ob[order]': 'asc',
+                            'a': 'flats',
+                            'object': 52,
+                            '__s': '',
+                        }
+                    )
 
-            response = req.json()
+                    response = req.json()
 
-            soup = BeautifulSoup(response['html'], "html.parser")
+                    soup = BeautifulSoup(response['html'], "html.parser")
 
-            flats = soup.select('tr')
+                    flats = soup.select('tr.b-building_type_inner-flat')
+
+                    break
+                except Exception as e:
+                    time.sleep(random.uniform(1, 4))
+                    print(e)
 
             if len(flats) == 0:
                 break
@@ -100,11 +110,15 @@ def get_all_flats():
                         )
 
                 build_obj = ' '.join(temp_name)
+                floor = list(map(int, flat.select('div.b-buliding__flat-info-val')[0].text.strip().split(' / ')))
+                size = float(flat.select('div.b-buliding__flat-info-val')[1].text.strip().replace('\xa0м²', ''))
 
                 data = {
                     'uid': hashlib.sha256(url.encode()).hexdigest(),
                     'link': url,
                     'name': name,
+                    'size': size,
+                    'floor': floor,
                     'object': build_obj,
                     'price': int(price),
                     'time': int(time.time()),
@@ -114,7 +128,7 @@ def get_all_flats():
                     data
                 )
 
-            time.sleep(random.uniform(1, 3))
+            time.sleep(random.uniform(0.1, 0.7))
     except Exception as e:
         print(e)
 
@@ -164,21 +178,22 @@ def process_flats():
 
             while True:
                 try:
-                    result = requests.post(
-                        url = settings.get('host') + '/message',
-                        json = {
-                            'id': queue_file.get('uid'),
-                            'sender': settings.get('sender'),
-                            'text': '<a href="%s">%s</a> изменила цену.\nС %s на %s' % (
-                                data_file['link'],
-                                data_file['name'],
-                                price_format(last_price),
-                                price_format(queue_file.get('price')),
-                            ),
-                        }
-                    )
+                    if SEND_TELEGRAM_MESSAGE:
+                        result = requests.post(
+                            url = settings.get('host') + '/message',
+                            json = {
+                                'id': queue_file.get('uid'),
+                                'sender': settings.get('sender'),
+                                'text': '<a href="%s">%s</a> изменила цену.\nС %s на %s' % (
+                                    data_file['link'],
+                                    data_file['name'],
+                                    price_format(last_price),
+                                    price_format(queue_file.get('price')),
+                                ),
+                            }
+                        )
 
-                    if result.status_code == 200 and result.json().get('success'):
+                    if not SEND_TELEGRAM_MESSAGE or (result.status_code == 200 and result.json().get('success')):
                         Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
                         os.remove(FOLDER_QUEUE + file)
 
@@ -214,20 +229,21 @@ def process_flats():
 
             while True:
                 try:
-                    result = requests.post(
-                        url = settings.get('host') + '/message',
-                        json = {
-                            'id': data_file.get('uid'),
-                            'sender': settings.get('sender'),
-                            'text': '<a href="%s">%s</a> была продана.\nПоследняя цена %s' % (
-                                data_file['link'],
-                                data_file['name'],
-                                price_format(last_price),
-                            ),
-                        }
-                    )
+                    if SEND_TELEGRAM_MESSAGE:
+                        result = requests.post(
+                            url = settings.get('host') + '/message',
+                            json = {
+                                'id': data_file.get('uid'),
+                                'sender': settings.get('sender'),
+                                'text': '<a href="%s">%s</a> была продана.\nПоследняя цена %s' % (
+                                    data_file['link'],
+                                    data_file['name'],
+                                    price_format(last_price),
+                                ),
+                            }
+                        )
                     
-                    if result.status_code == 200 and result.json().get('success'):
+                    if not SEND_TELEGRAM_MESSAGE or (result.status_code == 200 and result.json().get('success')):
                         Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
                         break
                 except Exception as e:
@@ -261,6 +277,8 @@ def process_flats():
             'name': queue_file.get('name'),
             'link': queue_file.get('link'),
             'last_price': queue_file.get('price'),
+            'size': queue_file.get('size'),
+            'floor': queue_file.get('floor'),
             'prices': [
                 {
                     'price': queue_file.get('price'),
@@ -271,20 +289,21 @@ def process_flats():
 
         while True:
             try:
-                result = requests.post(
-                    url = settings.get('host') + '/message',
-                    json = {
-                        'id': data_file.get('uid'),
-                        'sender': settings.get('sender'),
-                        'text': '<a href="%s">%s</a>\nЦена новопоявившейся квартиры %s' % (
-                            data_file['link'],
-                            data_file['name'],
-                            price_format(data_file['last_price']),
-                        ),
-                    }
-                )
+                if SEND_TELEGRAM_MESSAGE:
+                    result = requests.post(
+                        url = settings.get('host') + '/message',
+                        json = {
+                            'id': data_file.get('uid'),
+                            'sender': settings.get('sender'),
+                            'text': '<a href="%s">%s</a>\nЦена новопоявившейся квартиры %s' % (
+                                data_file['link'],
+                                data_file['name'],
+                                price_format(data_file['last_price']),
+                            ),
+                        }
+                    )
 
-                if result.status_code == 200 and result.json().get('success'):
+                if not SEND_TELEGRAM_MESSAGE or (result.status_code == 200 and result.json().get('success')):
                     Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
                     os.remove(FOLDER_QUEUE + file)
 
