@@ -1,4 +1,5 @@
 import requests
+import datetime
 import time
 import os
 import re
@@ -325,7 +326,11 @@ def main():
     while True:
         now_time = int(time.time())
 
-        time.sleep(max(settings_system['time'] - now_time, 0))
+        sleep_time = max(settings_system['time'] - now_time, 0)
+
+        print(f'Спим {sleep_time} секунд.\nВремя: {datetime.datetime.fromtimestamp(settings_system["time"]).strftime("%d.%m.%y %H:%M:%S")}')
+
+        time.sleep(sleep_time)
 
         flats = get_all_flats()
         
