@@ -1,6 +1,7 @@
 import requests
 import time
 import os
+import re
 import hashlib
 import random
 
@@ -19,13 +20,24 @@ settings_system = jsona_system.return_json().get('data', {'time': int(time.time(
 
 FOLDER_DATA = 'data/'
 FOLDER_QUEUE = 'queue/'
+FOLDER_ERRORS = 'errors/'
 
 
 for path in [
     FOLDER_DATA,
     FOLDER_QUEUE,
+    FOLDER_ERRORS,
 ]:
     os.makedirs(path, exist_ok = True)
+
+
+def price_format(value):
+    str_value = str(value)
+
+    regex = r'\d{3}(?!$)'
+    subst = '\g<0>.'
+
+    return re.sub(regex, subst, str_value[::-1], 0, re.MULTILINE)[::-1]
 
 
 def get_all_flats():
@@ -157,11 +169,11 @@ def process_flats():
                         json = {
                             'id': queue_file.get('uid'),
                             'sender': settings.get('sender'),
-                            'text': '<a href="%s">%s</a> изменила цену.\nС %i на %i' % (
+                            'text': '<a href="%s">%s</a> изменила цену.\nС %s на %s' % (
                                 data_file['link'],
                                 data_file['name'],
-                                last_price,
-                                queue_file.get('price'),
+                                price_format(last_price),
+                                price_format(queue_file.get('price')),
                             ),
                         }
                     )
@@ -172,6 +184,15 @@ def process_flats():
 
                         break
                 except Exception as e:
+                    print(e)
+
+                    Jsona(FOLDER_ERRORS, f'{int(time.time())}.json').save_json(
+                        data = {
+                            'error': str(e),
+                        },
+                        ident = 4
+                    )
+                    
                     time.sleep(random.uniform(1, 2))
         
         else:
@@ -198,10 +219,10 @@ def process_flats():
                         json = {
                             'id': data_file.get('uid'),
                             'sender': settings.get('sender'),
-                            'text': '<a href="%s">%s</a> была продана.\nПоследняя цена %i' % (
+                            'text': '<a href="%s">%s</a> была продана.\nПоследняя цена %s' % (
                                 data_file['link'],
                                 data_file['name'],
-                                last_price,
+                                price_format(last_price),
                             ),
                         }
                     )
@@ -210,6 +231,15 @@ def process_flats():
                         Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
                         break
                 except Exception as e:
+                    print(e)
+
+                    Jsona(FOLDER_ERRORS, f'{int(time.time())}.json').save_json(
+                        data = {
+                            'error': str(e),
+                        },
+                        ident = 4
+                    )
+                    
                     time.sleep(random.uniform(1, 2))
 
     for file in os.listdir(FOLDER_QUEUE):
@@ -246,10 +276,10 @@ def process_flats():
                     json = {
                         'id': data_file.get('uid'),
                         'sender': settings.get('sender'),
-                        'text': '<a href="%s">%s</a>\nЦена новопоявившейся квартиры %i' % (
+                        'text': '<a href="%s">%s</a>\nЦена новопоявившейся квартиры %s' % (
                             data_file['link'],
                             data_file['name'],
-                            data_file['last_price'],
+                            price_format(data_file['last_price']),
                         ),
                     }
                 )
@@ -260,6 +290,15 @@ def process_flats():
 
                     break
             except Exception as e:
+                print(e)
+
+                Jsona(FOLDER_ERRORS, f'{int(time.time())}.json').save_json(
+                    data = {
+                        'error': str(e),
+                    },
+                    ident = 4
+                )
+
                 time.sleep(random.uniform(1, 2))
 
 
