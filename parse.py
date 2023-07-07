@@ -10,6 +10,10 @@ from jsona import Jsona
 
 BASE_URL = 'https://www.lsr.ru'
 
+jsona = Jsona('', 'settings.json')
+
+settings = jsona.return_json().get('data', {})
+
 
 FOLDER_DATA = 'data/'
 FOLDER_QUEUE = 'queue/'
@@ -89,6 +93,7 @@ def get_all_flats():
                     'name': name,
                     'object': build_obj,
                     'price': int(price),
+                    'time': int(time.time()),
                 }
 
                 result.append(
@@ -119,24 +124,141 @@ def save_data_flats_queue(flats):
 
 def process_flats():
     for file in os.listdir(FOLDER_DATA):
+        if not file.endswith('.json'):
+            continue
+        
         jsona_queue = Jsona(path_file=FOLDER_QUEUE, name_file=file).return_json()
+        jsona_data = Jsona(path_file=FOLDER_DATA, name_file=file).return_json()
 
         if jsona_queue.get('success'):
-            jsona_data = Jsona(path_file=FOLDER_DATA, name_file=file).return_json()
-            data_file = jsona_data.get('data', {})
+            data_file = jsona_data.get('data')
+            queue_file = jsona_queue.get('data')
 
-            print('NEED UPDATE DATA')
+            last_price = data_file['last_price']
+
+            if last_price == queue_file.get('price'):
+                continue
+
+            data_file['last_price'] = queue_file.get('price')
+
+            data_file['prices'].append(
+                {
+                    'price': queue_file.get('price'),
+                    'time': queue_file.get('time'),
+                }
+            )
+
+            while True:
+                try:
+                    result = requests.post(
+                        url = settings.get('host') + '/message',
+                        json = {
+                            'id': queue_file.get('uid'),
+                            'sender': settings.get('sender'),
+                            'text': '<a href="%s">%s</a> изменила цену.\nС %i на %i' % (
+                                data_file['link'],
+                                data_file['name'],
+                                last_price,
+                                queue_file.get('price'),
+                            ),
+                        }
+                    )
+
+                    if result.status_code == 200 and result.json().get('success'):
+                        Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
+                        os.remove(FOLDER_QUEUE + file)
+
+                        break
+                except Exception as e:
+                    time.sleep(random.uniform(1, 2))
+        
         else:
-            print('FLAT HAS BEEN SOLD')
+            data_file = jsona_data.get('data')
+
+            last_price = data_file['last_price']
+
+            if last_price == -1:
+                continue
+
+            data_file['last_price'] = -1
+
+            data_file['prices'].append(
+                {
+                    'price': -1,
+                    'time': int(time.time()),
+                }
+            )
+
+            while True:
+                try:
+                    result = requests.post(
+                        url = settings.get('host') + '/message',
+                        json = {
+                            'id': data_file.get('uid'),
+                            'sender': settings.get('sender'),
+                            'text': '<a href="%s">%s</a> была продана.\nПоследняя цена %i' % (
+                                data_file['link'],
+                                data_file['name'],
+                                last_price,
+                            ),
+                        }
+                    )
+                    
+                    if result.status_code == 200 and result.json().get('success'):
+                        Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
+                        break
+                except Exception as e:
+                    time.sleep(random.uniform(1, 2))
 
     for file in os.listdir(FOLDER_QUEUE):
+        if not file.endswith('.json'):
+            continue
+
         jsona_queue = Jsona(path_file=FOLDER_QUEUE, name_file=file).return_json()
+        jsona_data = Jsona(path_file=FOLDER_DATA, name_file=file).return_json()
 
-        print(f'NEED ADD NEW FLAT {jsona_queue["data"]["link"]}')
-    
-    print()
+        if jsona_data.get('success'):
+            os.remove(FOLDER_QUEUE + file)
+            continue
 
-    
+        queue_file = jsona_queue.get('data')
+        
+        data_file = {
+            'uid': queue_file.get('uid'),
+            'object': queue_file.get('object'),
+            'name': queue_file.get('name'),
+            'link': queue_file.get('link'),
+            'last_price': queue_file.get('price'),
+            'prices': [
+                {
+                    'price': queue_file.get('price'),
+                    'time': queue_file.get('time'),
+                }
+            ],
+        }
+
+        while True:
+            try:
+                result = requests.post(
+                    url = settings.get('host') + '/message',
+                    json = {
+                        'id': data_file.get('uid'),
+                        'sender': settings.get('sender'),
+                        'text': '<a href="%s">%s</a>\nЦена новопоявившейся квартиры %i' % (
+                            data_file['link'],
+                            data_file['name'],
+                            data_file['last_price'],
+                        ),
+                    }
+                )
+
+                if result.status_code == 200 and result.json().get('success'):
+                    Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
+                    os.remove(FOLDER_QUEUE + file)
+
+                    break
+            except Exception as e:
+                time.sleep(random.uniform(1, 2))
 
 
 def main():
