@@ -10,9 +10,6 @@ from bs4 import BeautifulSoup
 from jsona import Jsona
 
 
-SEND_TELEGRAM_MESSAGE = True
-
-
 BASE_URL = 'https://www.lsr.ru'
 
 jsona_settings = Jsona('', 'settings.json')
@@ -151,6 +148,32 @@ def save_data_flats_queue(flats):
         print(e)
 
 
+def send_telegram(uid, message):
+    try:
+        result = requests.post(
+            url = settings.get('host') + '/message',
+            json = {
+                'id': uid,
+                'sender': settings.get('sender'),
+                'text': message,
+            }
+        )
+
+        print(message)
+
+        return result.status_code == 200 and result.json().get('success')
+    except Exception as e:
+        print(e)
+
+    return False
+
+
+def just_print(message):
+    print(message)
+
+    return True
+
+
 def process_flats():
     for file in os.listdir(FOLDER_DATA):
         if not file.endswith('.json'):
@@ -178,46 +201,29 @@ def process_flats():
             )
 
             while True:
-                try:
-                    if SEND_TELEGRAM_MESSAGE:
-                        result = requests.post(
-                            url = settings.get('host') + '/message',
-                            json = {
-                                'id': queue_file.get('uid'),
-                                'sender': settings.get('sender'),
-                                'text': '<a href="%s">%s</a> изменила цену.\nС %s на %s' % (
-                                    data_file['link'],
-                                    data_file['name'],
-                                    price_format(last_price),
-                                    price_format(queue_file.get('price')),
-                                ),
-                            }
-                        )
-
-                    print(
-                        'Изменение цены %s %s\nС %s на %s' % (
-                            data_file['name'],
-                            data_file['link'],
-                            price_format(last_price),
-                            price_format(queue_file.get('price')),
-                        )
+                result = send_telegram(
+                    uid = queue_file.get('uid'),
+                    message = '<a href="%s">%s</a> изменила цену.\nС %s на %s' % (
+                        data_file['link'],
+                        data_file['name'],
+                        price_format(last_price),
+                        price_format(queue_file.get('price')),
+                    ),
+                ) if settings.get('send_telegram_message') else just_print(
+                    message = 'Изменение цены %s %s\nС %s на %s' % (
+                        data_file['name'],
+                        data_file['link'],
+                        price_format(last_price),
+                        price_format(queue_file.get('price')),
                     )
+                )
 
-                    if not SEND_TELEGRAM_MESSAGE or (result.status_code == 200 and result.json().get('success')):
-                        Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
-                        os.remove(FOLDER_QUEUE + file)
+                if result:
+                    Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
+                    os.remove(FOLDER_QUEUE + file)
 
-                        break
-                except Exception as e:
-                    print(e)
-
-                    Jsona(FOLDER_ERRORS, f'{int(time.time())}.json').save_json(
-                        data = {
-                            'error': str(e),
-                        },
-                        ident = 4
-                    )
-                    
+                    break
+                else:
                     time.sleep(random.uniform(1, 2))
         
         else:
@@ -238,42 +244,25 @@ def process_flats():
             )
 
             while True:
-                try:
-                    if SEND_TELEGRAM_MESSAGE:
-                        result = requests.post(
-                            url = settings.get('host') + '/message',
-                            json = {
-                                'id': data_file.get('uid'),
-                                'sender': settings.get('sender'),
-                                'text': '<a href="%s">%s</a> была продана.\nПоследняя цена %s' % (
-                                    data_file['link'],
-                                    data_file['name'],
-                                    price_format(last_price),
-                                ),
-                            }
-                        )
-
-                    print(
-                        'Продажа %s %s\nПоследняя цена %s' % (
-                            data_file['name'],
-                            data_file['link'],
-                            price_format(last_price),
-                        )
+                result = send_telegram(
+                    uid = queue_file.get('uid'),
+                    message = '<a href="%s">%s</a> была продана.\nПоследняя цена %s' % (
+                        data_file['link'],
+                        data_file['name'],
+                        price_format(last_price),
+                    ),
+                ) if settings.get('send_telegram_message') else just_print(
+                    message = 'Продажа %s %s\nПоследняя цена %s' % (
+                        data_file['name'],
+                        data_file['link'],
+                        price_format(last_price),
                     )
-                    
-                    if not SEND_TELEGRAM_MESSAGE or (result.status_code == 200 and result.json().get('success')):
-                        Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
-                        break
-                except Exception as e:
-                    print(e)
-
-                    Jsona(FOLDER_ERRORS, f'{int(time.time())}.json').save_json(
-                        data = {
-                            'error': str(e),
-                        },
-                        ident = 4
-                    )
-                    
+                )
+                
+                if result:
+                    Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
+                    break
+                else:
                     time.sleep(random.uniform(1, 2))
 
     for file in os.listdir(FOLDER_QUEUE):
@@ -306,44 +295,27 @@ def process_flats():
         }
 
         while True:
-            try:
-                if SEND_TELEGRAM_MESSAGE:
-                    result = requests.post(
-                        url = settings.get('host') + '/message',
-                        json = {
-                            'id': data_file.get('uid'),
-                            'sender': settings.get('sender'),
-                            'text': '<a href="%s">%s</a>\nЦена новопоявившейся квартиры %s' % (
-                                data_file['link'],
-                                data_file['name'],
-                                price_format(data_file['last_price']),
-                            ),
-                        }
-                    )
-
-                print(
-                    'Появилась %s %s\nЦена %s' % (
-                        data_file['name'],
-                        data_file['link'],
-                        price_format(data_file['last_price']),
-                    )
+            result = send_telegram(
+                uid = queue_file.get('uid'),
+                message = '<a href="%s">%s</a>\nЦена новопоявившейся квартиры %s' % (
+                    data_file['link'],
+                    data_file['name'],
+                    price_format(data_file['last_price']),
+                ),
+            ) if settings.get('send_telegram_message') else just_print(
+                message = 'Появилась %s %s\nЦена %s' % (
+                    data_file['name'],
+                    data_file['link'],
+                    price_format(data_file['last_price']),
                 )
+            )
+            
+            if result:
+                Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
+                os.remove(FOLDER_QUEUE + file)
 
-                if not SEND_TELEGRAM_MESSAGE or (result.status_code == 200 and result.json().get('success')):
-                    Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
-                    os.remove(FOLDER_QUEUE + file)
-
-                    break
-            except Exception as e:
-                print(e)
-
-                Jsona(FOLDER_ERRORS, f'{int(time.time())}.json').save_json(
-                    data = {
-                        'error': str(e),
-                    },
-                    ident = 4
-                )
-
+                break
+            else:
                 time.sleep(random.uniform(1, 2))
 
 
