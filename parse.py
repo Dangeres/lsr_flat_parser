@@ -194,6 +194,15 @@ def process_flats():
                             }
                         )
 
+                    print(
+                        'Изменение цены %s %s\nС %s на %s' % (
+                            data_file['name'],
+                            data_file['link'],
+                            price_format(last_price),
+                            price_format(queue_file.get('price')),
+                        )
+                    )
+
                     if not SEND_TELEGRAM_MESSAGE or (result.status_code == 200 and result.json().get('success')):
                         Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
                         os.remove(FOLDER_QUEUE + file)
@@ -243,6 +252,14 @@ def process_flats():
                                 ),
                             }
                         )
+
+                    print(
+                        'Продажа %s %s\nПоследняя цена %s' % (
+                            data_file['name'],
+                            data_file['link'],
+                            price_format(last_price),
+                        )
+                    )
                     
                     if not SEND_TELEGRAM_MESSAGE or (result.status_code == 200 and result.json().get('success')):
                         Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
@@ -303,6 +320,14 @@ def process_flats():
                             ),
                         }
                     )
+
+                print(
+                    'Появилась %s %s\nЦена %s' % (
+                        data_file['name'],
+                        data_file['link'],
+                        price_format(data_file['last_price']),
+                    )
+                )
 
                 if not SEND_TELEGRAM_MESSAGE or (result.status_code == 200 and result.json().get('success')):
                     Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
