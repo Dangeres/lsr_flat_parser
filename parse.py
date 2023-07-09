@@ -201,21 +201,26 @@ def process_flats():
             )
 
             while True:
+                message_html = '<a href="%s">%s</a> изменила цену.\nС %s на %s\n\n<i>uid: %s</i>' % (
+                    data_file['link'],
+                    data_file['name'],
+                    price_format(last_price),
+                    price_format(queue_file.get('price')),
+                    queue_file.get('uid'),
+                )
+
+                message_raw = 'Изменение цены %s %s\nС %s на %s' % (
+                    data_file['name'],
+                    data_file['link'],
+                    price_format(last_price),
+                    price_format(queue_file.get('price')),
+                )
+
                 result = send_telegram(
                     uid = queue_file.get('uid'),
-                    message = '<a href="%s">%s</a> изменила цену.\nС %s на %s' % (
-                        data_file['link'],
-                        data_file['name'],
-                        price_format(last_price),
-                        price_format(queue_file.get('price')),
-                    ),
+                    message = message_html,
                 ) if settings.get('send_telegram_message') else just_print(
-                    message = 'Изменение цены %s %s\nС %s на %s' % (
-                        data_file['name'],
-                        data_file['link'],
-                        price_format(last_price),
-                        price_format(queue_file.get('price')),
-                    )
+                    message = message_raw,
                 )
 
                 if result:
@@ -244,19 +249,24 @@ def process_flats():
             )
 
             while True:
+                message_html = '<a href="%s">%s</a> была продана.\nПоследняя цена %s\n\n<i>uid: %s</i>' % (
+                    data_file['link'],
+                    data_file['name'],
+                    price_format(last_price),
+                    queue_file.get('uid'),
+                )
+
+                message_raw = 'Продажа %s %s\nПоследняя цена %s' % (
+                    data_file['name'],
+                    data_file['link'],
+                    price_format(last_price),
+                )
+
                 result = send_telegram(
                     uid = queue_file.get('uid'),
-                    message = '<a href="%s">%s</a> была продана.\nПоследняя цена %s' % (
-                        data_file['link'],
-                        data_file['name'],
-                        price_format(last_price),
-                    ),
+                    message = message_html,
                 ) if settings.get('send_telegram_message') else just_print(
-                    message = 'Продажа %s %s\nПоследняя цена %s' % (
-                        data_file['name'],
-                        data_file['link'],
-                        price_format(last_price),
-                    )
+                    message = message_raw,
                 )
                 
                 if result:
@@ -295,19 +305,24 @@ def process_flats():
         }
 
         while True:
+            message_html = '<a href="%s">%s</a>\nЦена новопоявившейся квартиры %s\n\n<i>uid: %s</i>' % (
+                data_file['link'],
+                data_file['name'],
+                price_format(data_file['last_price']),
+                queue_file.get('uid'),
+            )
+
+            message_raw = 'Появилась %s %s\nЦена %s' % (
+                data_file['name'],
+                data_file['link'],
+                price_format(data_file['last_price']),
+            )
+
             result = send_telegram(
                 uid = queue_file.get('uid'),
-                message = '<a href="%s">%s</a>\nЦена новопоявившейся квартиры %s' % (
-                    data_file['link'],
-                    data_file['name'],
-                    price_format(data_file['last_price']),
-                ),
+                message = message_html,
             ) if settings.get('send_telegram_message') else just_print(
-                message = 'Появилась %s %s\nЦена %s' % (
-                    data_file['name'],
-                    data_file['link'],
-                    price_format(data_file['last_price']),
-                )
+                message = message_raw,
             )
             
             if result:
@@ -330,8 +345,12 @@ def main():
         time.sleep(sleep_time)
 
         flats = get_all_flats()
+
+        print('Квартиры были получены')
         
         save_data_flats_queue(flats)
+        
+        print('Квартиры были обработаны')
 
         process_flats()
 
