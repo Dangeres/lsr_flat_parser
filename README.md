@@ -2,7 +2,7 @@
   LSR парсер недвижимости.
 </h1>
 
-<h3>❗️ Работу парсера можно глянуть в <a href="https://t.me/+yW_YH0Nx541hYjNi">телеграм канале</a></h3>
+<h3 align="center">❗️ Работу парсера можно глянуть в <a href="https://t.me/+yW_YH0Nx541hYjNi">телеграм канале</a></h3>
 
 <h4 align="center">Оглавление README:</h4>
 <div align="center">
