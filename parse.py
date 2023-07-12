@@ -201,7 +201,7 @@ def process_flats():
             )
 
             while True:
-                if data_file['prices'][-2] == -1:
+                if last_price == -1:
                     prev_last_price = price_format(data_file['prices'][-3]) if len(data_file['prices']) > 2 else 'Неизвестно'
 
                     message_html = '<a href="%s">%s</a> пропадала с продажи но вернулась.\nЦена до продажи %s\nТекущая цена %s\n\n<i>uid: %s</i>' % (
