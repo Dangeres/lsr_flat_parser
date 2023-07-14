@@ -367,6 +367,8 @@ def main():
 
         time.sleep(sleep_time)
 
+        print('Начинаем получать квартиры....')
+
         flats = get_all_flats()
 
         print('Квартиры были получены')
