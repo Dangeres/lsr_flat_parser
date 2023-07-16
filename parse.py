@@ -43,13 +43,14 @@ def price_format(value):
 
 def get_all_flats():
     result = []
+    page = 1
 
     try:
-        for page in range(1, 1000):
+        while True:
             while True:
                 try:
                     req = requests.post(
-                        url='https://www.lsr.ru/ajax/search/msk/',
+                        url=BASE_URL + '/ajax/search/msk/',
                         params={
                             'price[min]': '',
                             'price[max]': '',
@@ -125,6 +126,8 @@ def get_all_flats():
                 result.append(
                     data
                 )
+
+            page += 1
 
             time.sleep(random.uniform(0.1, 0.7))
     except Exception as e:
