@@ -64,7 +64,8 @@ def get_all_flats():
                             'a': 'flats',
                             'object': 52,
                             '__s': '',
-                        }
+                        },
+                        verify = False,
                     )
 
                     response = req.json()
