@@ -8,6 +8,7 @@ import random
 
 from bs4 import BeautifulSoup
 from jsona import Jsona
+from utils import price_format, send_telegram, just_print
 
 
 BASE_URL = 'https://www.lsr.ru'
@@ -30,15 +31,6 @@ for path in [
     FOLDER_ERRORS,
 ]:
     os.makedirs(path, exist_ok = True)
-
-
-def price_format(value):
-    str_value = str(value)
-
-    regex = r'\d{3}(?!$)'
-    subst = '\g<0>.'
-
-    return re.sub(regex, subst, str_value[::-1], 0, re.MULTILINE)[::-1]
 
 
 def get_all_flats():
@@ -151,32 +143,6 @@ def save_data_flats_queue(flats):
         print(e)
 
 
-def send_telegram(uid, message):
-    try:
-        result = requests.post(
-            url = settings.get('host') + '/message',
-            json = {
-                'id': uid,
-                'sender': settings.get('sender'),
-                'text': message,
-            }
-        )
-
-        print(message)
-
-        return result.status_code == 200 and result.json().get('success')
-    except Exception as e:
-        print(e)
-
-    return False
-
-
-def just_print(message):
-    print(message)
-
-    return True
-
-
 def process_flats():
     for file in os.listdir(FOLDER_DATA):
         if not file.endswith('.json'):
@@ -243,6 +209,8 @@ def process_flats():
                 result = send_telegram(
                     uid = queue_file.get('uid'),
                     message = message_html,
+                    host = settings.get('host'),
+                    sender = settings.get('sender'),
                 ) if settings.get('send_telegram_message') else just_print(
                     message = message_raw,
                 )
@@ -290,6 +258,8 @@ def process_flats():
                 result = send_telegram(
                     uid = queue_file.get('uid'),
                     message = message_html,
+                    host = settings.get('host'),
+                    sender = settings.get('sender'),
                 ) if settings.get('send_telegram_message') else just_print(
                     message = message_raw,
                 )
@@ -347,6 +317,8 @@ def process_flats():
             result = send_telegram(
                 uid = queue_file.get('uid'),
                 message = message_html,
+                host = settings.get('host'),
+                sender = settings.get('sender'),
             ) if settings.get('send_telegram_message') else just_print(
                 message = message_raw,
             )
