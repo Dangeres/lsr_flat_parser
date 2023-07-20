@@ -38,10 +38,12 @@ def main():
         if data.get('last_price') > -1:
             continue
 
-        if (
-            data.get('prices', [])[-1]['time'] >= now_time - weeks_delay
-        ) and (
-            data.get('prices', [])[-1]['time'] <= now_time - 2 * weeks_delay
+        if not (
+            (
+                data.get('prices', [])[-1]['time'] >= now_time - 2 * weeks_delay
+            ) and (
+                data.get('prices', [])[-1]['time'] <= now_time - weeks_delay
+            )
         ):
             continue
 
