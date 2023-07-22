@@ -212,6 +212,7 @@ def process_flats():
                     message = message_html,
                     host = settings.get('host'),
                     sender = settings.get('sender'),
+                    token = settings.get('token'),
                 ) if settings.get('send_telegram_message') else just_print(
                     message = message_raw,
                 )
@@ -261,6 +262,7 @@ def process_flats():
                     message = message_html,
                     host = settings.get('host'),
                     sender = settings.get('sender'),
+                    token = settings.get('token'),
                 ) if settings.get('send_telegram_message') else just_print(
                     message = message_raw,
                 )
@@ -320,6 +322,7 @@ def process_flats():
                 message = message_html,
                 host = settings.get('host'),
                 sender = settings.get('sender'),
+                token = settings.get('token'),
             ) if settings.get('send_telegram_message') else just_print(
                 message = message_raw,
             )

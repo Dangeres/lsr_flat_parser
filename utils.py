@@ -11,7 +11,7 @@ def price_format(value):
     return re.sub(regex, subst, str_value[::-1], 0, re.MULTILINE)[::-1]
 
 
-def send_telegram(uid, message, host, sender):
+def send_telegram(uid, message, host, sender, token):
     try:
         result = requests.post(
             url = host + '/message',
@@ -19,6 +19,9 @@ def send_telegram(uid, message, host, sender):
                 'id': uid,
                 'sender': sender,
                 'text': message,
+            },
+            headers = {
+                'token': token,
             }
         )
 
