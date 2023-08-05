@@ -19,6 +19,7 @@ def send_telegram(uid, message, host, sender, token):
                 'id': uid,
                 'sender': sender,
                 'text': message,
+                'silent': False,
             },
             headers = {
                 'token': token,
