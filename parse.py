@@ -13,6 +13,10 @@ from utils import price_format, send_telegram, just_print
 
 BASE_URL = 'https://www.lsr.ru'
 
+my_uid = [
+    'a1d68c2b187d1ab123672f0c9860453d94285bacbe89b32859caf2ac8291b577',
+]
+
 jsona_settings = Jsona('', 'settings.json')
 jsona_system = Jsona('', 'settings_system.json')
 
@@ -86,7 +90,9 @@ def get_all_flats():
                 url = ''.join(
                     [
                         BASE_URL,
-                        (flat.select_one('a') or {}).get('href', '')
+                        '/%s/' % (
+                            (flat.select_one('a') or {}).get('href', '').strip('/'),
+                        ),
                     ]
                 )
 
@@ -217,7 +223,21 @@ def process_flats():
                     message = message_raw,
                 )
 
-                if result:
+                result2 = True
+                
+                if queue_file.get('uid') in my_uid:
+                    result2 = send_telegram(
+                        uid = queue_file.get('uid'),
+                        message = 'Дополнительное уведомление по квартире (изменение цены) <a href="%s">ссылка</a>\n%s"' % (
+                            data_file['link'],
+                            queue_file.get('uid'),
+                        ),
+                        host = settings.get('host'),
+                        sender = 'yablokov',
+                        token = settings.get('token'),
+                    )
+
+                if result and result2:
                     Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
                     os.remove(FOLDER_QUEUE + file)
 
@@ -266,8 +286,22 @@ def process_flats():
                 ) if settings.get('send_telegram_message') else just_print(
                     message = message_raw,
                 )
+
+                result2 = True
+
+                if queue_file.get('uid') in my_uid:
+                    result2 = send_telegram(
+                        uid = queue_file.get('uid'),
+                        message = 'Дополнительное уведомление по квартире (ПРОДАЖА квартиры) <a href="%s">ссылка</a>\n%s"' % (
+                            data_file['link'],
+                            queue_file.get('uid'),
+                        ),
+                        host = settings.get('host'),
+                        sender = 'yablokov',
+                        token = settings.get('token'),
+                    )
                 
-                if result:
+                if result and result2:
                     Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
                     break
                 else:
