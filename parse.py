@@ -14,7 +14,8 @@ from utils import price_format, send_telegram, just_print
 BASE_URL = 'https://www.lsr.ru'
 
 my_uid = [
-    'a1d68c2b187d1ab123672f0c9860453d94285bacbe89b32859caf2ac8291b577',
+    'a1d68c2b187d1ab123672f0c9860453d94285bacbe89b32859caf2ac8291b577', # 2279
+    '18f1ea156ff67b334746edbadd7f3da9ac1ec11a9a3d9c0e2848d9437bec4570', # 2272
 ]
 
 jsona_settings = Jsona('', 'settings.json')
@@ -267,14 +268,14 @@ def process_flats():
                     data_file['link'],
                     data_file['name'],
                     price_format(last_price),
-                    queue_file.get('uid'),
+                    data_file.get('uid'),
                 )
 
                 message_raw = 'Продажа %s %s\nПоследняя цена %s\n\nuid: %s' % (
                     data_file['name'],
                     data_file['link'],
                     price_format(last_price),
-                    queue_file.get('uid'),
+                    data_file.get('uid'),
                 )
 
                 result = send_telegram(
@@ -289,12 +290,12 @@ def process_flats():
 
                 result2 = True
 
-                if queue_file.get('uid') in my_uid:
+                if data_file.get('uid') in my_uid:
                     result2 = send_telegram(
                         uid = queue_file.get('uid'),
                         message = 'Дополнительное уведомление по квартире (ПРОДАЖА квартиры) <a href="%s">ссылка</a>\n%s"' % (
                             data_file['link'],
-                            queue_file.get('uid'),
+                            data_file.get('uid'),
                         ),
                         host = settings.get('host'),
                         sender = 'yablokov',
