@@ -111,6 +111,7 @@ def get_all_flats():
                 build_obj = ' '.join(temp_name)
                 floor = list(map(int, flat.select('div.b-buliding__flat-info-val')[0].text.strip().split(' / ')))
                 size = float(flat.select('div.b-buliding__flat-info-val')[1].text.strip().replace('\xa0м²', ''))
+                image = BASE_URL + flat.select_one('img.b-building__plan').attrs.get('data-src')
 
                 data = {
                     'uid': hashlib.sha256(url.encode()).hexdigest(),
@@ -120,6 +121,7 @@ def get_all_flats():
                     'floor': floor,
                     'object': build_obj,
                     'price': int(price),
+                    'image': image,
                     'time': int(time.time()),
                 }
 
@@ -164,6 +166,11 @@ def process_flats():
             queue_file = jsona_queue.get('data')
 
             last_price = data_file['last_price']
+
+            if data_file.get('image') != queue_file.get('image'):
+                data_file['image'] = queue_file['image']
+
+                Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
 
             if last_price == queue_file.get('price'):
                 continue
@@ -329,6 +336,7 @@ def process_flats():
             'last_price': queue_file.get('price'),
             'size': queue_file.get('size'),
             'floor': queue_file.get('floor'),
+            'image': queue_file.get('image'),
             'prices': [
                 {
                     'price': queue_file.get('price'),
