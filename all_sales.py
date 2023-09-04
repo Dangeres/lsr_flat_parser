@@ -83,6 +83,8 @@ def main():
 
     sales = sorted(sales, key = lambda x: (x['time'], x['price']))
 
+    valid_dt = int(time.time()) - 14 * 86400
+
     with open('detail_info.csv', 'w', newline='') as csvfile:
         spamwriter = csv.writer(
             csvfile,
@@ -92,6 +94,9 @@ def main():
         spamwriter.writerow(['Цена', 'Время', 'Обьект', 'Этаж', 'ЭтажМ', 'Имя', 'Картинка', 'Размер', 'UID'])
 
         for data in sales:
+            if data['time'] > valid_dt:
+                break
+            
             spamwriter.writerow([
                 data['price'],
                 datetime.datetime.fromtimestamp(data['time']).strftime("%d.%m.%y %H:%M:%S"),
