@@ -20,11 +20,8 @@ settings = jsona_settings.return_json().get('data', {})
 def main():
     folder_path = 'data/'
 
-    weeks_delay = 7 * 24 * 60 * 60
-
     settings['send_telegram_message'] = False # TEMP
 
-    now_time = int(time.time())
     sales = []
 
     for file in os.listdir(folder_path):
@@ -38,15 +35,6 @@ def main():
         if data.get('last_price') > -1:
             continue
 
-        if not (
-            (
-                data.get('prices', [])[-1]['time'] >= now_time - 2 * weeks_delay
-            ) and (
-                data.get('prices', [])[-1]['time'] <= now_time - weeks_delay
-            )
-        ):
-            continue
-
         sales.append(
             {
                 'price': data.get('prices', [])[-2]['price'],
@@ -54,6 +42,7 @@ def main():
                 'object': data.get('object'),
                 'floor': data.get('floor'),
                 'link': data.get('link'),
+                'image': data.get('image', ''),
                 'name': data.get('name'),
                 'size': data.get('size'),
                 'uid': data.get('uid'),
@@ -92,7 +81,7 @@ def main():
 
         print('---')
 
-    sales = sorted(sales, key = lambda x: (x['price'], x['time']))
+    sales = sorted(sales, key = lambda x: (x['time'], x['price']))
 
     with open('detail_info.csv', 'w', newline='') as csvfile:
         spamwriter = csv.writer(
@@ -100,7 +89,7 @@ def main():
             delimiter=',',
         )
         
-        spamwriter.writerow(['Цена', 'Время', 'Обьект', 'Этаж', 'ЭтажМ', 'Имя', 'Ссылка', 'Размер', 'UID'])
+        spamwriter.writerow(['Цена', 'Время', 'Обьект', 'Этаж', 'ЭтажМ', 'Имя', 'Картинка', 'Размер', 'UID'])
 
         for data in sales:
             spamwriter.writerow([
@@ -110,7 +99,7 @@ def main():
                 data.get('floor')[0],
                 data.get('floor')[1],
                 data.get('name'),
-                data.get('link'),
+                data.get('image'),
                 data.get('size'),
                 data.get('uid'),
             ])

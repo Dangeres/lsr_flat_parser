@@ -6,3 +6,4 @@ queue/
 
 .DS_store
 settings*.json
+*.csv
