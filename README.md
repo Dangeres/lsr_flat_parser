@@ -8,6 +8,7 @@
 <div align="center">
     <a href="#про-скрипт"> • Для чего нужен этот скрипт • </a><br>
     <a href="#установка"> • Установка • </a><br>
+    <a href="#docker">Docker</a><br>
     <a href="#внутрянка"> • Что внутри • </a><br>
     <a href="#файл-settingsjson"> • Что такое файл settings.json • </a><br>
     <a href="#примечание"> • Примечание • </a>
@@ -30,6 +31,11 @@
 5. Редактируете файл `settings.json` под себя;
 6. Запускаете `parse.py` и наслаждаетесь результатом.
 
+## Docker
+Можно запустить все это из докер контейнера собрав образ командой внутри папки с проектом <br>
+`docker build --tag lsr .` <br>
+и запустив командой <br>
+`docker run -v $(pwd)/data:/data -v $(pwd)/errors:/errors -v $(pwd)/queue:/queue -v $(pwd)/settings_system.json:/settings_system.json -v $(pwd)/settings.json:/settings.json lsr`
 
 ## Внутрянка
 1. Данные для настройки указываются в конфиг файле `settings.json` *(шаблон заполнен тестовыми данными и называется sample_settings.json)*;

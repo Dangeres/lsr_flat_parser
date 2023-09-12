@@ -1,3 +1,10 @@
 env
 __pycache__
 .pytest_cache
+
+data/
+errors/
+queue/
+
+settings_system.json
+settings.json
