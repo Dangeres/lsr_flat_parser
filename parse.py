@@ -286,7 +286,7 @@ def process_flats():
                 )
 
                 result = send_telegram(
-                    uid = queue_file.get('uid'),
+                    uid = data_file.get('uid'),
                     message = message_html,
                     host = settings.get('host'),
                     sender = settings.get('sender'),
@@ -299,7 +299,7 @@ def process_flats():
 
                 if data_file.get('uid') in my_uid:
                     result2 = send_telegram(
-                        uid = queue_file.get('uid'),
+                        uid = data_file.get('uid'),
                         message = 'Дополнительное уведомление по квартире (ПРОДАЖА квартиры) <a href="%s">ссылка</a>\n%s"' % (
                             data_file['link'],
                             data_file.get('uid'),
