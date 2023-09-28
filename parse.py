@@ -2,7 +2,8 @@ import requests
 import datetime
 import time
 import os
-import re
+import sys
+import logging
 import hashlib
 import random
 
@@ -12,6 +13,15 @@ from utils import price_format, send_telegram, just_print
 
 
 BASE_URL = 'https://www.lsr.ru'
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 my_uid = [
     'a1d68c2b187d1ab123672f0c9860453d94285bacbe89b32859caf2ac8291b577', # 2279
@@ -82,7 +92,7 @@ def get_all_flats():
                     break
                 except Exception as e:
                     time.sleep(random.uniform(1, 4))
-                    print(e)
+                    logger.error(e)
 
             if len(flats) == 0:
                 break
@@ -133,7 +143,7 @@ def get_all_flats():
 
             time.sleep(random.uniform(0.1, 0.7))
     except Exception as e:
-        print(e)
+        logger.error(e)
 
     return result
 
@@ -150,7 +160,7 @@ def save_data_flats_queue(flats):
                 data = data,
             )
     except Exception as e:
-        print(e)
+        logger.error(e)
 
 
 def process_flats():
@@ -380,15 +390,15 @@ def process_flats():
 
 
 def tick():
-    print('Начинаем получать квартиры....')
+    logger.info('Начинаем получать квартиры....')
 
     flats = get_all_flats()
 
-    print('Квартиры были получены')
+    logger.info('Квартиры были получены')
     
     save_data_flats_queue(flats)
     
-    print('Квартиры были обработаны')
+    logger.info('Квартиры были обработаны')
 
     process_flats()
 
@@ -399,7 +409,7 @@ def main():
 
         sleep_time = max(settings_system['time'] - now_time, 0)
 
-        print(f'Спим {sleep_time} секунд.\nВремя: {datetime.datetime.fromtimestamp(settings_system["time"]).strftime("%d.%m.%y %H:%M:%S")}')
+        logger.info(f'Спим {sleep_time} секунд.\nВремя: {datetime.datetime.fromtimestamp(settings_system["time"]).strftime("%d.%m.%y %H:%M:%S")}')
 
         time.sleep(sleep_time)
 
