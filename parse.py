@@ -198,7 +198,7 @@ def process_flats():
                 if last_price == -1:
                     prev_last_price = price_format(data_file['prices'][-3]['price']) if len(data_file['prices']) > 2 else 'Неизвестно'
 
-                    flat_type = data_file.get('image', '').split('/')[-1].split('-', ['unknown'])[0]
+                    flat_type = (data_file.get('image', '').split('/')[-1].split('-') or ['unknown'])[0]
 
                     message_html = '<a href="%s">%s</a> пропадала с продажи но вернулась.\nЦена до продажи %s\nТекущая цена %s\n\nТип квартиры: <a href="%s">%s (картика планировки)</a>\n\n<i>uid: %s</i>' % (
                         data_file['link'],
@@ -219,7 +219,7 @@ def process_flats():
                     )
                 
                 else:
-                    flat_type = data_file.get('image', '').split('/')[-1].split('-', ['unknown'])[0]
+                    flat_type = (data_file.get('image', '').split('/')[-1].split('-') or ['unknown'])[0]
 
                     message_html = '<a href="%s">%s</a> изменила цену.\nС %s на %s\n\nТип квартиры: <a href="%s">%s (картика планировки)</a>\n\n<i>uid: %s</i>' % (
                         data_file['link'],
@@ -289,7 +289,7 @@ def process_flats():
             )
 
             while True:
-                flat_type = data_file.get('image', '').split('/')[-1].split('-', ['unknown'])[0]
+                flat_type = (data_file.get('image', '').split('/')[-1].split('-') or ['unknown'])[0]
 
                 message_html = '<a href="%s">%s</a> была продана.\nПоследняя цена %s\n\nТип квартиры: <a href="%s">%s (картика планировки)</a>\n\n<i>uid: %s</i>' % (
                     data_file['link'],
@@ -368,7 +368,7 @@ def process_flats():
         }
 
         while True:
-            flat_type = data_file.get('image', '').split('/')[-1].split('-', ['unknown'])[0]
+            flat_type = (data_file.get('image', '').split('/')[-1].split('-') or ['unknown'])[0]
 
             message_html = '<a href="%s">%s</a>\nЦена новопоявившейся квартиры %s\n\nТип квартиры: <a href="%s">%s (картика планировки)</a>\n\n<i>uid: %s</i>' % (
                 data_file['link'],
