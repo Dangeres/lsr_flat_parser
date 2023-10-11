@@ -200,13 +200,14 @@ def process_flats():
 
                     flat_type = (data_file.get('image', '').split('/')[-1].split('-') or ['unknown'])[0]
 
-                    message_html = '<a href="%s">%s</a> пропадала с продажи но вернулась.\nЦена до продажи %s\nТекущая цена %s\n\nТип квартиры: <a href="%s">%s (картика планировки)</a>\n\n<i>uid: %s</i>' % (
+                    message_html = 'Обьект: %s\n\nНазвание: <a href="%s">%s</a>\nТип квартиры: <a href="%s">%s (планировка)</a>\n\nСообщение: пропадала с продажи но вернулась.\nЦена до продажи %s\nТекущая цена %s\n\n<i>uid: %s</i>' % (
+                        data_file['object'],
                         data_file['link'],
                         data_file['name'],
-                        prev_last_price,
-                        price_format(queue_file.get('price')),
                         data_file.get('image'),
                         flat_type,
+                        prev_last_price,
+                        price_format(queue_file.get('price')),
                         queue_file.get('uid'),
                     )
 
@@ -221,13 +222,14 @@ def process_flats():
                 else:
                     flat_type = (data_file.get('image', '').split('/')[-1].split('-') or ['unknown'])[0]
 
-                    message_html = '<a href="%s">%s</a> изменила цену.\nС %s на %s\n\nТип квартиры: <a href="%s">%s (картика планировки)</a>\n\n<i>uid: %s</i>' % (
+                    message_html = 'Обьект: %s\n\nНазвание: <a href="%s">%s</a>\nТип квартиры: <a href="%s">%s (планировка)</a>\n\nСообщение: изменила цену с %s на %s\n\n<i>uid: %s</i>' % (
+                        data_file['object'],
                         data_file['link'],
                         data_file['name'],
-                        price_format(last_price),
-                        price_format(queue_file.get('price')),
                         data_file.get('image'),
                         flat_type,
+                        price_format(last_price),
+                        price_format(queue_file.get('price')),
                         queue_file.get('uid'),
                     )
 
@@ -291,12 +293,13 @@ def process_flats():
             while True:
                 flat_type = (data_file.get('image', '').split('/')[-1].split('-') or ['unknown'])[0]
 
-                message_html = '<a href="%s">%s</a> была продана.\nПоследняя цена %s\n\nТип квартиры: <a href="%s">%s (картика планировки)</a>\n\n<i>uid: %s</i>' % (
+                message_html = 'Обьект: %s\n\nНазвание: <a href="%s">%s</a>\nТип квартиры: <a href="%s">%s (планировка)</a>\n\nСообщение: была продана.\nПоследняя цена %s\n\n<i>uid: %s</i>' % (
+                    data_file['object'],
                     data_file['link'],
                     data_file['name'],
-                    price_format(last_price),
                     data_file.get('image'),
                     flat_type,
+                    price_format(last_price),
                     data_file.get('uid'),
                 )
 
@@ -370,12 +373,13 @@ def process_flats():
         while True:
             flat_type = (data_file.get('image', '').split('/')[-1].split('-') or ['unknown'])[0]
 
-            message_html = '<a href="%s">%s</a>\nЦена новопоявившейся квартиры %s\n\nТип квартиры: <a href="%s">%s (картика планировки)</a>\n\n<i>uid: %s</i>' % (
+            message_html = 'Обьект: %s\n\nНазвание: <a href="%s">%s</a>\nТип квартиры: <a href="%s">%s (планировка)</a>\n\nСообщение: появилась новая квартира по цене %s\n\n<i>uid: %s</i>' % (
+                data_file['object'],
                 data_file['link'],
                 data_file['name'],
-                price_format(data_file['last_price']),
                 data_file.get('image'),
                 flat_type,
+                price_format(data_file['last_price']),
                 queue_file.get('uid'),
             )
 
