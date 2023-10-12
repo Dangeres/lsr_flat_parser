@@ -293,7 +293,7 @@ def process_flats():
             while True:
                 flat_type = (data_file.get('image', '').split('/')[-1].split('-') or ['unknown'])[0]
 
-                message_html = 'Обьект: %s\n\nНазвание: <a href="%s">%s</a>\nТип квартиры: <a href="%s">%s (планировка)</a>\n\nСообщение: была продана.\nПоследняя цена %s\n\n<i>uid: %s</i>' % (
+                message_html = 'Обьект: %s\n\nНазвание: <a href="%s">%s</a>\nТип квартиры: <a href="%s">%s (планировка)</a>\n\nСообщение: пропала с продажи на сайте (означает что она пошла в бронь и возможно скоро ее купят).\nПоследняя цена %s\n\n<i>uid: %s</i>' % (
                     data_file['object'],
                     data_file['link'],
                     data_file['name'],
