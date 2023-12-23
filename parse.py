@@ -58,6 +58,12 @@ def get_all_flats():
                 try:
                     req = requests.post(
                         url=BASE_URL + '/ajax/search/msk/',
+                        headers={
+                            'Accept': 'application/json, text/javascript, */*; q=0.01',
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.5993.806 YaBrowser/23.11.2.806 Yowser/2.5 Safari/537.36',
+                        },
                         params={
                             'price[min]': '',
                             'price[max]': '',
@@ -80,7 +86,7 @@ def get_all_flats():
                             'object': 52,
                             '__s': '',
                         },
-                        verify = False,
+                        # verify = False,
                     )
 
                     response = req.json()
@@ -123,6 +129,9 @@ def get_all_flats():
                 size = float(flat.select('div.b-buliding__flat-info-val')[1].text.strip().replace('\xa0м²', ''))
                 image = BASE_URL + flat.select_one('img.b-building__plan').attrs.get('data-src')
 
+                type_decor = flat.select('.b-building__flat-decor')[0].text.strip().replace('\xa0', ' ')
+                type_furnish = flat.select('.b-building__flat-decor')[1].text.strip().replace('\xa0', ' ')
+
                 data = {
                     'uid': hashlib.sha256(url.encode()).hexdigest(),
                     'link': url,
@@ -131,6 +140,8 @@ def get_all_flats():
                     'floor': floor,
                     'object': build_obj,
                     'price': int(price),
+                    'type_decor': type_decor,
+                    'type_furnish': type_furnish,
                     'image': image,
                     'time': int(time.time()),
                 }
@@ -177,8 +188,15 @@ def process_flats():
 
             last_price = data_file['last_price']
 
-            if data_file.get('image') != queue_file.get('image'):
-                data_file['image'] = queue_file['image']
+            for tag in [
+                'image',
+                'type_decor',
+                'type_furnish',
+            ]:
+                if data_file.get(tag) == queue_file.get(tag):
+                    continue
+
+                data_file[tag] = queue_file[tag]
 
                 Jsona(path_file=FOLDER_DATA, name_file=file).save_json(data = data_file)
 
@@ -293,7 +311,7 @@ def process_flats():
             while True:
                 flat_type = (data_file.get('image', '').split('/')[-1].split('-') or ['unknown'])[0]
 
-                message_html = 'Обьект: %s\n\nНазвание: <a href="%s">%s</a>\nТип квартиры: <a href="%s">%s (планировка)</a>\n\nСообщение: пропала с продажи на сайте (означает что она пошла в бронь и возможно скоро ее купят).\nПоследняя цена %s\n\n<i>uid: %s</i>' % (
+                message_html = 'Обьект: %s\n\nНазвание: <a href="%s">%s</a>\nТип квартиры: <a href="%s">%s (планировка)</a>\n\nСообщение: была забронирована(скоро подписание договоров).\nПоследняя цена %s\n\n<i>uid: %s</i>' % (
                     data_file['object'],
                     data_file['link'],
                     data_file['name'],
@@ -362,6 +380,8 @@ def process_flats():
             'size': queue_file.get('size'),
             'floor': queue_file.get('floor'),
             'image': queue_file.get('image'),
+            'type_decor': queue_file.get('type_decor'),
+            'type_furnish': queue_file.get('type_furnish'),
             'prices': [
                 {
                     'price': queue_file.get('price'),
